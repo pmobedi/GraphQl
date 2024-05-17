@@ -13,7 +13,7 @@ mongoose.connect('mongodb://127.0.0.1/graphql-project');
 let schema = buildSchema(`
     type Query {
         user : User
-        getAllUser(page : Int, limit : Int)  : [User]
+        getAllUser(page : Int, limit : Int) : userData
         getUser(id : ID!) : User
         FakeData : String
     }
@@ -26,6 +26,17 @@ let schema = buildSchema(`
         password : String
         comments : [Comment]
      }
+     type Paginate {
+        total : Int
+        limit : Int
+        page : Int
+        pages : Int
+    }
+
+    type userData {
+        users : [User],
+        paginate : Paginate
+    }
     type Post {
         user : ID
         title : String
@@ -82,11 +93,21 @@ let resolver = {
         }
         return "data store ..."
     },
+
     getAllUser : async (args) => {
         let page = args.page || 1;
-        let limit = args.limit || 10 ;
-        const users = await User.find({}).skip((page - 1) * limit).limit(limit);
-        return users;
+        let limit = args.limit || 10;
+        // const users = await User.find({}).skip((page - 1) * limit).limit(limit);
+        const users = await User.paginate({}, {page, limit});
+        return {
+            users : users.docs,
+            paginate : {
+                total : users.total,
+                limit : users.limit,
+                page : users.page,
+                pages : users.pages
+            }
+        }
     },
     getUser : async (args) => {
         const user = await User.findById(args.id)
