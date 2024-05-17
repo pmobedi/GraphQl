@@ -14,7 +14,7 @@ let schema = buildSchema(`
     type Query {
         user : User
         getAllUser : [User]
-        getUser(id : ID) : User
+        getUser(id : ID!) : User
         FakeData : String
     }
     type User {
